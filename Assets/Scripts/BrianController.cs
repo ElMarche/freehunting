@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 public class BrianController : MonoBehaviour
 {
     [SerializeField] float moveVelocity = 10.0f;
+    [SerializeField] float crouchVelocity = 5.0f;
     [SerializeField] float rotationVelocity = 200.0f;
     //[SerializeField] float x, y;
     [SerializeField] float jumpForce = 5.0f;
@@ -16,6 +17,7 @@ public class BrianController : MonoBehaviour
     private Rigidbody rb;
     private Vector2 movementValue;
     private float lookValue;
+    private Vector2 onMoveInputValue;
 
     // Start is called before the first frame update
     private void Awake()
@@ -33,12 +35,23 @@ public class BrianController : MonoBehaviour
         //y = Input.GetAxis("Vertical");
         //transform.Rotate(0, x * Time.deltaTime * rotationVelocity, 0);
         //transform.Translate(0, 0, y * Time.deltaTime * moveVelocity);
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            movementValue = onMoveInputValue * crouchVelocity;
+            anim.SetBool("isCrouching", true);
+            anim.SetFloat("Blend", crouchVelocity);
+        } else
+        {
+            movementValue = onMoveInputValue * moveVelocity;
+            anim.SetBool("isCrouching", false);
+            anim.SetFloat("Blend", moveVelocity);
+        }
         transform.Translate(movementValue.x * Time.deltaTime,0, movementValue.y * Time.deltaTime);
         transform.Rotate(0, lookValue * Time.deltaTime, 0);
 
         anim.SetFloat("VelX", movementValue.x);
         anim.SetFloat("VelY", movementValue.y);
-        anim.SetFloat("Blend", moveVelocity);
+        
 
         //if (grounded)
         //{
@@ -57,13 +70,15 @@ public class BrianController : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
-        movementValue = value.Get<Vector2>() * moveVelocity;
+        onMoveInputValue = value.Get<Vector2>();        
     }
 
     public void OnLook(InputValue value)
     {
         lookValue = value.Get<Vector2>().x * rotationVelocity;
     }
+
+    
     public void Fall()
     {
         anim.SetBool("isGrounded", false);
